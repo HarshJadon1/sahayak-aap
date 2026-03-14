@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medical Information"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/et_blood_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Blood Group"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/et_allergies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Allergies"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/et_conditions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Medical Conditions"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/et_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Emergency Notes"
+            android:layout_marginBottom="16dp"
+            android:minLines="3"
+            android:gravity="top"/>
+
+        <Button
+            android:id="@+id/btn_save_medical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Information"/>
+
+    </LinearLayout>
+</ScrollView>
