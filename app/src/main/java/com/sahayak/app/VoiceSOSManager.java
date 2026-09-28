@@ -3,6 +3,8 @@ package com.sahayak.app;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -74,9 +76,13 @@ public class VoiceSOSManager {
                 }
                 Log.e(TAG, "Speech Error: " + message);
                 
-                // Restart listening if it was supposed to be listening
+                // Restart listening with a delay if it was supposed to be listening
                 if (isListening) {
-                    startListening();
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (isListening) {
+                            startListening();
+                        }
+                    }, 1000);
                 }
             }
 

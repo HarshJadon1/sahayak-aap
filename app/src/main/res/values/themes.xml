@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Sahayak" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary_red</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/pulse_red_outer</item>
 
-    <style name="Theme.Sahayak" parent="android:Theme.Material.Light.NoActionBar" />
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/dark_gray</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Surface and Background -->
+        <item name="android:windowBackground">@color/background_white</item>
+        <item name="colorSurface">@color/white</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/background_white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.Sahayak.NoActionBar" parent="Theme.Sahayak">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>

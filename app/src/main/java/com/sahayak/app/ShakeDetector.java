@@ -7,7 +7,7 @@ import android.hardware.SensorManager;
 
 public class ShakeDetector implements SensorEventListener {
 
-    private static final float SHAKE_THRESHOLD_GRAVITY = 1.2f; // ~12 m/s^2
+    private static final float SHAKE_THRESHOLD_GRAVITY = 2.5f; // ~25 m/s^2 (prevents accidental triggers while walking or handling)
     private static final int SHAKE_SLOP_TIME_MS = 500;
     private static final int SHAKE_COUNT_RESET_TIME_MS = 2000;
 

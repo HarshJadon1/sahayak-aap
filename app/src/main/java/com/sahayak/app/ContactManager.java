@@ -20,7 +20,7 @@ public class ContactManager {
         Set<String> contacts = sharedPreferences.getStringSet(KEY_CONTACTS, new HashSet<>());
         Set<String> newContacts = new HashSet<>(contacts);
         newContacts.add(contact);
-        sharedPreferences.edit().putStringSet(KEY_CONTACTS, newContacts).apply();
+        saveContacts(newContacts);
     }
 
     public List<String> getContacts() {
@@ -32,6 +32,20 @@ public class ContactManager {
         Set<String> contacts = sharedPreferences.getStringSet(KEY_CONTACTS, new HashSet<>());
         Set<String> newContacts = new HashSet<>(contacts);
         newContacts.remove(contact);
-        sharedPreferences.edit().putStringSet(KEY_CONTACTS, newContacts).apply();
+        saveContacts(newContacts);
+    }
+
+    public void updateContact(String oldContact, String newContact) {
+        Set<String> contacts = sharedPreferences.getStringSet(KEY_CONTACTS, new HashSet<>());
+        Set<String> newContacts = new HashSet<>(contacts);
+        newContacts.remove(oldContact);
+        newContacts.add(newContact);
+        saveContacts(newContacts);
+    }
+
+    private void saveContacts(Set<String> contacts) {
+        // SharedPreferences bug fix: hamesha remove karke naya set dalna chahiye
+        sharedPreferences.edit().remove(KEY_CONTACTS).apply();
+        sharedPreferences.edit().putStringSet(KEY_CONTACTS, contacts).apply();
     }
 }

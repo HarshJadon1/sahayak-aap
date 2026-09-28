@@ -36,14 +36,26 @@ public class VerifyOtpActivity extends AppCompatActivity {
         guardianName = getIntent().getStringExtra("guardian_name");
         guardianPhone = getIntent().getStringExtra("guardian_phone");
         generatedOtp = getIntent().getStringExtra("generated_otp");
+        final String editOriginal = getIntent().getStringExtra("edit_original");
 
         startTimer();
 
         btnVerify.setOnClickListener(v -> {
             String enteredOtp = etOtp.getText().toString().trim();
             if (enteredOtp.equals(generatedOtp)) {
-                // Save contact
-                contactManager.addContact(guardianPhone); // Existing system saves numbers
+                String contactEntry;
+                if (guardianName != null && !guardianName.trim().isEmpty()) {
+                    contactEntry = guardianName.trim() + ":" + guardianPhone.trim();
+                } else {
+                    contactEntry = guardianPhone.trim();
+                }
+
+                if (editOriginal != null) {
+                    contactManager.updateContact(editOriginal, contactEntry);
+                } else {
+                    contactManager.addContact(contactEntry);
+                }
+
                 Toast.makeText(this, "Contact Verified and Saved", Toast.LENGTH_SHORT).show();
                 
                 Intent intent = new Intent(this, ContactsActivity.class);

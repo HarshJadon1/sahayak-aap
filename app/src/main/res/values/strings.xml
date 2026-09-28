@@ -1,3 +1,31 @@
 <resources>
     <string name="app_name">Sahayak</string>
+    <string name="sos">SOS</string>
+    <string name="medical_info">Medical Information</string>
+    <string name="emergency_contacts">Emergency Contacts</string>
+    <string name="view_emergency_screen">View Emergency Screen</string>
+    <string name="emergency_view">Emergency View</string>
+    <string name="enter_phone_number">Enter Phone Number</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="blood_group">Blood Group</string>
+    <string name="allergies">Allergies</string>
+    <string name="medical_conditions">Medical Conditions</string>
+    <string name="emergency_notes">Emergency Notes</string>
+    <string name="save_information">Save Information</string>
+    <string name="emergency_information">EMERGENCY INFORMATION</string>
+    <string name="blood_group_label">Blood Group:</string>
+    <string name="allergies_label">Allergies:</string>
+    <string name="medical_conditions_label">Medical Conditions:</string>
+    <string name="emergency_notes_label">Emergency Notes:</string>
+    <string name="not_provided">Not Provided</string>
+
+    <!-- Design Guidelines Strings -->
+    <string name="emergency_assistance">Emergency Assistance</string>
+    <string name="emergency_contacts_desc">Add or manage emergency contacts</string>
+    <string name="medical_info_desc">Store blood group, allergies, and conditions</string>
+    <string name="emergency_access_desc">Quick access to emergency tools</string>
+    <string name="view_map">Live Map</string>
+    <string name="view_map_desc">View your current location on map</string>
+    <string name="send_sos">SEND SOS</string>
+    <string name="cancel_sos_hint">Long press for 3 seconds to cancel</string>
 </resources>

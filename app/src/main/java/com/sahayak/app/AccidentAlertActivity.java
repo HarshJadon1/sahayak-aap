@@ -8,6 +8,7 @@ import android.os.CountDownTimer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.widget.TextView;
+import android.view.WindowManager;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 
@@ -24,8 +25,14 @@ public class AccidentAlertActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         // Ensure it shows over lock screen
-        setShowWhenLocked(true);
-        setTurnScreenOn(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
         
         setContentView(R.layout.activity_accident_alert);
 

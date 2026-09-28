@@ -4,14 +4,19 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.sahayak.app.location.MapsActivity;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,10 +32,26 @@ public class MainActivity extends AppCompatActivity {
         locationHelper = new LocationHelper(this);
         contactManager = new ContactManager(this);
 
-        findViewById(R.id.btn_sos).setOnClickListener(new View.OnClickListener() {
+        // Start Emergency Service for Lock Screen Access
+        startEmergencyService();
+
+        // SOS Button with Pulse Animation
+        FloatingActionButton btnSos = findViewById(R.id.btn_sos);
+        Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
+        btnSos.startAnimation(pulse);
+
+        btnSos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkPermissionsAndSendSOS();
+                checkPermissionsAndTriggerEmergency();
+            }
+        });
+
+        // Dashboard Cards
+        findViewById(R.id.btn_view_map).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, MapsActivity.class));
             }
         });
 
@@ -51,52 +72,78 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_emergency_view).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, EmergencyActivity.class));
+                startActivity(new Intent(MainActivity.this, EmergencyHistoryActivity.class));
             }
         });
     }
 
-    private void checkPermissionsAndSendSOS() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.SEND_SMS
-            }, PERMISSION_REQUEST_CODE);
+    private void startEmergencyService() {
+        Intent serviceIntent = new Intent(this, EmergencyService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.startForegroundService(this, serviceIntent);
         } else {
-            sendSOS();
+            startService(serviceIntent);
+        }
+        
+        // Request Notification Permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
         }
     }
 
-    private void sendSOS() {
-        locationHelper.getLastLocation(this, new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    String url = "https://maps.google.com/?q=" + location.getLatitude() + "," + location.getLongitude();
-                    List<String> contacts = contactManager.getContacts();
-                    if (contacts.isEmpty()) {
-                        Toast.makeText(MainActivity.this, "No emergency contacts added!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        SMSHelper.sendEmergencySMS(contacts, url);
-                        Toast.makeText(MainActivity.this, "SOS Sent!", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Unable to get location", Toast.LENGTH_SHORT).show();
-                }
+    private void checkPermissionsAndTriggerEmergency() {
+        java.util.List<String> permissions = new java.util.ArrayList<>();
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(Manifest.permission.SEND_SMS);
+        permissions.add(Manifest.permission.CAMERA);
+        permissions.add(Manifest.permission.RECORD_AUDIO);
+        permissions.add(Manifest.permission.CALL_PHONE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.READ_MEDIA_VIDEO);
+        } else {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+
+        boolean allGranted = true;
+        for (String p : permissions) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
             }
-        });
+        }
+
+        if (!allGranted) {
+            ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+        } else {
+            triggerEmergencyActions();
+        }
+    }
+
+    private void triggerEmergencyActions() {
+        // Trigger SOS in the central service
+        Intent intent = new Intent(this, EmergencyService.class);
+        intent.setAction("TRIGGER_SOS");
+        startService(intent);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                sendSOS();
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                triggerEmergencyActions();
             } else {
-                Toast.makeText(this, "Permissions required for SOS", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permissions required for Emergency System", Toast.LENGTH_SHORT).show();
             }
         }
     }

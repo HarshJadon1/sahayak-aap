@@ -1,21 +1,22 @@
 package com.sahayak.app;
 
-import android.content.ContentUris;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,43 +39,28 @@ public class EmergencyHistoryActivity extends AppCompatActivity {
         
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         
-        loadVideos();
+        loadPrivateVideos();
     }
 
-    private void loadVideos() {
+    private void loadPrivateVideos() {
         List<EmergencyVideo> videoList = new ArrayList<>();
+        File movieDir = new File(getExternalFilesDir(Environment.DIRECTORY_MOVIES), "Sahayak_Recordings");
         
-        Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?";
-        String[] selectionArgs = new String[]{"%Sahayak/Emergency_Recordings%"};
-        String sortOrder = MediaStore.Video.Media.DATE_ADDED + " DESC";
-
-        String[] projection = new String[]{
-                MediaStore.Video.Media._ID,
-                MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.Media.DATE_ADDED,
-                MediaStore.Video.Media.SIZE
-        };
-
-        try (Cursor cursor = getContentResolver().query(collection, projection, selection, selectionArgs, sortOrder)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
-                int nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME);
-                int dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED);
-
-                do {
-                    long id = cursor.getLong(idColumn);
-                    String name = cursor.getString(nameColumn);
-                    long dateAdded = cursor.getLong(dateColumn);
-                    Uri contentUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
-
-                    videoList.add(new EmergencyVideo(name, contentUri, dateAdded));
-                } while (cursor.moveToNext());
+        if (movieDir.exists() && movieDir.isDirectory()) {
+            File[] files = movieDir.listFiles((dir, name) -> name.endsWith(".mp4"));
+            if (files != null) {
+                for (File file : files) {
+                    videoList.add(new EmergencyVideo(file.getName(), file, file.lastModified()));
+                }
             }
         }
 
+        // Sort by date (newest first)
+        videoList.sort((v1, v2) -> Long.compare(v2.dateAdded, v1.dateAdded));
+
         if (videoList.isEmpty()) {
             tvEmpty.setVisibility(View.VISIBLE);
+            tvEmpty.setText("No private recordings found");
         } else {
             tvEmpty.setVisibility(View.GONE);
             adapter = new VideoAdapter(videoList);
@@ -82,20 +68,18 @@ public class EmergencyHistoryActivity extends AppCompatActivity {
         }
     }
 
-    // Simple Data Model
     static class EmergencyVideo {
         String name;
-        Uri uri;
+        File file;
         long dateAdded;
 
-        EmergencyVideo(String name, Uri uri, long dateAdded) {
+        EmergencyVideo(String name, File file, long dateAdded) {
             this.name = name;
-            this.uri = uri;
+            this.file = file;
             this.dateAdded = dateAdded;
         }
     }
 
-    // Adapter Class
     class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHolder> {
         private List<EmergencyVideo> videos;
 
@@ -116,22 +100,37 @@ public class EmergencyHistoryActivity extends AppCompatActivity {
             holder.tvName.setText(video.name);
             
             SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy | hh:mm a", Locale.getDefault());
-            holder.tvDetails.setText(sdf.format(new Date(video.dateAdded * 1000)));
+            holder.tvDetails.setText(sdf.format(new Date(video.dateAdded)));
 
-            // Using Glide for thumbnail (Need to add dependency if not present, otherwise use standard)
-            // holder.ivThumbnail.setImageURI(video.uri); // Or use thumbnail utility
+            Glide.with(EmergencyHistoryActivity.this)
+                 .load(video.file)
+                 .placeholder(android.R.drawable.ic_menu_gallery)
+                 .error(android.R.drawable.ic_menu_report_image)
+                 .centerCrop()
+                 .into(holder.ivThumbnail);
             
             holder.btnPlay.setOnClickListener(v -> {
+                Uri contentUri = FileProvider.getUriForFile(EmergencyHistoryActivity.this, 
+                        getPackageName() + ".fileprovider", video.file);
+                
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(video.uri, "video/mp4");
+                intent.setDataAndType(contentUri, "video/mp4");
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(intent);
+                try {
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(EmergencyHistoryActivity.this, "No video player found", Toast.LENGTH_SHORT).show();
+                }
             });
 
             holder.btnShare.setOnClickListener(v -> {
+                Uri contentUri = FileProvider.getUriForFile(EmergencyHistoryActivity.this, 
+                        getPackageName() + ".fileprovider", video.file);
+                        
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("video/mp4");
-                shareIntent.putExtra(Intent.EXTRA_STREAM, video.uri);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 startActivity(Intent.createChooser(shareIntent, "Share Emergency Video"));
             });
         }

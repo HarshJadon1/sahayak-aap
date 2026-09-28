@@ -2,7 +2,9 @@ package com.sahayak.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,8 +22,14 @@ public class EmergencyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         // Make activity show over lock screen
-        setShowWhenLocked(true);
-        setTurnScreenOn(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
         
         setContentView(R.layout.activity_emergency);
 
